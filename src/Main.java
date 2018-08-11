@@ -58,7 +58,20 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+//        Poker poker = a[0];
+//        int i = 0;
+//        while(poker.getType() == 4 && (poker.getNumber() == 2 || poker.getNumber() == 1)) {
+//            i++;
+//        }
+//        poker = a[i];
+//        if (poker.getType() == 1) System.out.print("♦️");
+//        if (poker.getType() == 2) System.out.print("♣️");
+//        if (poker.getType() == 3) System.out.print("♥️");
+//        if (poker.getType() == 4) System.out.print("♠️️");
+//        if (poker.getNumber() == 11) System.out.print("J");
+//        else if (poker.getNumber() == 12) System.out.print("Q");
+//        else if (poker.getNumber() == 13) System.out.print("K");
+//        else System.out.print(poker.getNumber() + " ");
     }
 
     private static String printPoker(Poker[] pokers) {

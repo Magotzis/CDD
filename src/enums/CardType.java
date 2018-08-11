@@ -8,8 +8,8 @@ public enum CardType {
     SINGLE(0, "单张"),
     PAIR(1, "对子"),
     TRIPLE(2, "三张"),
-    FOURTH(3, "四张"),
 
+    FLUSH(3, "顺子"),
     THREE_BELT_TWO(4, "三带二"),
     FOURTH_BELT_ONE(5, "四带一"),
     STRAIGHT_FLUSH(6, "同花顺");
@@ -28,5 +28,12 @@ public enum CardType {
 
     public String getMessage() {
         return message;
+    }
+
+    public boolean inRanger(CardType begin, CardType end) {
+        if (begin.code > end.code) {
+            return false;
+        }
+        return code >= begin.code && (code <= end.code);
     }
 }

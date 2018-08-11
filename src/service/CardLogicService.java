@@ -1,5 +1,6 @@
 package service;
 
+import enums.CardType;
 import model.Poker;
 
 import java.util.List;
@@ -13,5 +14,7 @@ public interface CardLogicService {
      * 验证出牌是否正确且类型是什么
      * @param list 出的牌
      */
-    int isCorrect(List<Poker> list);
+    CardType judgeCardType(List<Poker> list);
+
+    boolean isCorrectAndBiggerThanLast(List<Poker> left, List<Poker> right);
 }
