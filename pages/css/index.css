@@ -1,0 +1,15 @@
+*{
+	padding: 0;
+	margin: 0;
+}
+
+#container{
+	position: fixed;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background: -webkit-linear-gradient(#4f66b5, #1e68c5); 	/* Safari 5.1 - 6.0 */
+	background: -o-linear-gradient(#4f66b5, #1e68c5); 		/* Opera 11.1 - 12.0 */
+	background: -moz-linear-gradient(#4f66b5, #1e68c5); 	/* Firefox 3.6 - 15 */
+	background: linear-gradient(#4f66b5, #1e68c5); 			/* 标准的语法 */
+}
