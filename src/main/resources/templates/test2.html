@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Spring Boot+WebSocket+广播式</title>
+
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">貌似你的浏览器不支持websocket</h2></noscript>
+<div>
+    <div>
+        <button id="connect" onclick="connect();">连接</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">断开连接</button>
+    </div>
+    <div id="conversationDiv">
+        <button id="sendName" onclick="sendName();">开始</button>
+        <p id="response"></p>
+        <p id="response1"></p>
+        <p id="response2"></p>
+    </div>
+</div>
+<!--<script th:src="@{sockjs.min.js}"></script>
+<script th:src="@{stomp.min.js}"></script>
+<script th:src="@{jquery.js}"></script>-->
+<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script th:inline="javascript">
+    var stompClient = null;
+    //此值有服务端传递给前端,实现方式没有要求
+    var userId = 'wz';
+
+    function setConnected(connected) {
+        document.getElementById('connect').disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+        $('#response').html();
+    }
+
+    function connect() {
+        var socket = new SockJS('/CDDWebsocket'); //1连接SockJS的endpoint是“endpointWisely”，与后台代码中注册的endpoint要一样。
+        stompClient = Stomp.over(socket);//2创建STOMP协议的webSocket客户端。
+        stompClient.connect({}, function (frame) {//3连接webSocket的服务端。
+            setConnected(true);
+            console.log('开始进行连接Connected: ' + frame);
+            //4通过stompClient.subscribe（）订阅服务器的目标是'/topic/getResponse'发送过来的地址，与@SendTo中的地址对应。
+            stompClient.subscribe('/topic/getResponse', function (respnose) {
+                console.log(respnose);
+                showResponse(respnose.body);
+            });
+            //4通过stompClient.subscribe（）订阅服务器的目标是'/user/' + userId + '/msg'接收一对一的推送消息,其中userId由服务端传递过来,用于表示唯一的用户,通过此值将消息精确推送给一个用户
+            stompClient.subscribe('/user/' + userId + '/msg', function (respnose) {
+                console.log(respnose);
+                showResponse1(JSON.parse(respnose.body));
+            });
+            stompClient.subscribe('/user/' + userId + '/errorMsg', function (respnose) {
+                console.log(respnose);
+                showResponse2(JSON.parse(respnose.body));
+            });
+        });
+    }
+
+
+    function disconnect() {
+        if (stompClient != null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        console.log("Disconnected");
+    }
+
+    function sendName() {
+        //通过stompClient.send（）向地址为"/welcome"的服务器地址发起请求，与@MessageMapping里的地址对应。因为我们配置了registry.setApplicationDestinationPrefixes(Constant.WEBSOCKETPATHPERFIX);所以需要增加前缀/ws-push/
+        stompClient.send("/app/begin", {}, JSON.stringify({'message': userId}));
+    }
+
+    function showResponse(message) {
+        var response = $("#response");
+        console.log(message);
+        response.html(message);
+    }
+
+    function showResponse1(message) {
+        var response = $("#response1");
+        response.html('');
+        console.log(message);
+        var html = "你的牌为：\n";
+        for (var i = message.length - 1; i >= 0; i--) {
+            var poker = message[i];
+            var content = '<label><input name="poker" type="checkbox" value="' + poker.type + '-' + poker.number + '" />';
+            if (poker.type === 1) content += "♦️";
+            if (poker.type === 2) content += "♣️";
+            if (poker.type === 3) content += "♥️";
+            if (poker.type === 4) content += "♠️️";
+            if (poker.number === 11) content += "J";
+            else if (poker.number === 12) content += "Q";
+            else if (poker.number === 13) content += "K";
+            else content += poker.number + " ";
+            content += '</label>\n';
+            html += content;
+        }
+        html += '<button onclick="bringCard();">出牌</button>';
+        html += '<button onclick="pass();">跳过</button>';
+        response.html(html);
+    }
+
+    function pass() {
+        stompClient.send("/app/pass", {}, JSON.stringify({"name": userId}));
+    }
+
+    function showResponse2(message) {
+        var response = $("#response2");
+        console.log(message);
+        response.html(message);
+    }
+
+    function bringCard() {
+        var pokers = [];
+        var i = 0;
+        $("input[name='poker']:checked").each(function () {
+            pokers[i++] = $(this).val();
+        });
+        console.log(pokers);
+        stompClient.send("/app/bringCard", {}, JSON.stringify({'pokers': pokers, "name": userId}));
+    }
+</script>
+</body>
+</html>
