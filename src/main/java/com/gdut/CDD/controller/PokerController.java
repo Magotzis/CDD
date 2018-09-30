@@ -117,7 +117,36 @@ public class PokerController {
             }
         }
         correctCardLogic(pokerList, message.getName(), havePoker);
-        sendMessage(pokerList, message.getName());
+        // 判断结果
+        boolean isContinue = ifGameOver();
+        if (isContinue) {
+            sendMessage(pokerList, message.getName());
+        } else {
+            sendResultMessage();
+        }
+    }
+
+    private void sendResultMessage() {
+        List<Result> resultList = new ArrayList<>();
+        ResultList.results.forEach((k, v) -> resultList.add(v));
+        List<Result> finishResults = resultList.stream().filter(result -> result.getResult() > 0).collect(Collectors.toList());
+        List<Result> dizhuPlayer = resultList.stream().filter(result -> result.getRole() == 1).collect(Collectors.toList());
+        if (finishResults.containsAll(dizhuPlayer)) {
+            webSocketService.sendMsg(new SocketMessage("游戏结束，地主获胜", new Date().toString()),"/topic/result");
+            System.out.println("游戏结束，地主获胜");
+        } else {
+            webSocketService.sendMsg(new SocketMessage("游戏结束，农民获胜", new Date().toString()),"/topic/result");
+            System.out.println("游戏结束，农民获胜");
+        }
+    }
+
+    private boolean ifGameOver() {
+        List<Result> resultList = new ArrayList<>();
+        ResultList.results.forEach((k, v) -> resultList.add(v));
+        List<Result> finishResults = resultList.stream().filter(result -> result.getResult() > 0).collect(Collectors.toList());
+        List<Result> dizhuPlayer = resultList.stream().filter(result -> result.getRole() == 1).collect(Collectors.toList());
+        List<Result> noDizhuPlayer = resultList.stream().filter(result -> result.getRole() == 0).collect(Collectors.toList());
+        return finishResults.containsAll(dizhuPlayer) || finishResults.containsAll(noDizhuPlayer);
     }
 
     @MessageMapping("/pass")
